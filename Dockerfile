@@ -34,47 +34,46 @@ FROM nginx:alpine
 COPY --from=build /app/public /usr/share/nginx/html
 
 # Create a custom nginx configuration with best practices
-RUN echo 'server {\
-    listen 80 default_server;\
-    listen [::]:80 default_server;\
-    server_name _;\
-    root /usr/share/nginx/html;\
-    index index.html;\
+RUN echo 'server { \
+    listen 80 default_server; \
+    listen [::]:80 default_server; \
+    server_name _; \
+    root /usr/share/nginx/html; \
+    index index.html; \
     \
-    # Enable compression\
-    gzip on;\
-    gzip_vary on;\
-    gzip_min_length 10240;\
-    gzip_proxied expired no-cache no-store private auth;\
-    gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/xml;\
-    gzip_disable "MSIE [1-6]\.";\
+    # Enable compression \
+    gzip on; \
+    gzip_vary on; \
+    gzip_min_length 10240; \
+    gzip_proxied expired no-cache no-store private auth; \
+    gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/xml; \
+    gzip_disable "MSIE [1-6]\\."; \
     \
-    # Security headers\
-    add_header X-Frame-Options "SAMEORIGIN";\
-    add_header X-XSS-Protection "1; mode=block";\
-    add_header X-Content-Type-Options "nosniff";\
-    add_header Referrer-Policy "strict-origin-when-cross-origin";\
-    add_header Content-Security-Policy "default-src \'self\'; img-src \'self\' https://via.placeholder.com; style-src \'self\' \'unsafe-inline\'; script-src \'self\' \'unsafe-inline\';";\
+    # Security headers \
+    add_header X-Frame-Options "SAMEORIGIN"; \
+    add_header X-XSS-Protection "1; mode=block"; \
+    add_header X-Content-Type-Options "nosniff"; \
+    add_header Referrer-Policy "strict-origin-when-cross-origin"; \
+    add_header Content-Security-Policy "default-src \"self\"; img-src \"self\" https://via.placeholder.com; style-src \"self\" \"unsafe-inline\"; script-src \"self\" \"unsafe-inline\""; \
     \
-    # Cache control\
-    location ~* \.(jpg|jpeg|png|gif|ico|css|js)$ {\
-        expires 30d;\
-        add_header Cache-Control "public, no-transform";\
-    }\
+    # Cache control \
+    location ~* \\.(jpg|jpeg|png|gif|ico|css|js)$ { \
+        expires 30d; \
+        add_header Cache-Control "public, no-transform"; \
+    } \
     \
-    # Redirect server error pages to the static pages\
-    error_page 404 /404.html;\
-    error_page 500 502 503 504 /50x.html;\
-    location = /50x.html {\
-        root /usr/share/nginx/html;\
-    }\
+    # Redirect server error pages to the static pages \
+    error_page 404 /404.html; \
+    error_page 500 502 503 504 /50x.html; \
+    location = /50x.html { \
+        root /usr/share/nginx/html; \
+    } \
 }' > /etc/nginx/conf.d/default.conf
 
 # Create a health check script
-RUN echo '#!/bin/sh\n\
-curl -f http://localhost:80 || exit 1\n\
-' > /usr/local/bin/docker-health-check.sh && \
-chmod +x /usr/local/bin/docker-health-check.sh
+RUN echo '#!/bin/sh \
+curl -f http://localhost:80 || exit 1' > /usr/local/bin/docker-health-check.sh && \
+    chmod +x /usr/local/bin/docker-health-check.sh
 
 # Create default error pages
 RUN echo '<html><head><title>404 Not Found</title></head><body><h1>404 Not Found</h1><p>The page you requested was not found.</p><p><a href="/">Return to Home</a></p></body></html>' > /usr/share/nginx/html/404.html && \
@@ -82,16 +81,15 @@ RUN echo '<html><head><title>404 Not Found</title></head><body><h1>404 Not Found
 
 # Create logs directory and configure log rotation
 RUN mkdir -p /var/log/nginx && \
-    echo '#!/bin/sh\n\
-if [ -f /var/log/nginx/access.log ]; then\n\
-    mv /var/log/nginx/access.log /var/log/nginx/access.log.old\n\
-fi\n\
-if [ -f /var/log/nginx/error.log ]; then\n\
-    mv /var/log/nginx/error.log /var/log/nginx/error.log.old\n\
-fi\n\
-kill -USR1 $(cat /var/run/nginx.pid)\n\
-' > /etc/periodic/daily/nginx-log-rotate && \
-chmod +x /etc/periodic/daily/nginx-log-rotate
+    echo '#!/bin/sh \
+if [ -f /var/log/nginx/access.log ]; then \
+    mv /var/log/nginx/access.log /var/log/nginx/access.log.old \
+fi \
+if [ -f /var/log/nginx/error.log ]; then \
+    mv /var/log/nginx/error.log /var/log/nginx/error.log.old \
+fi \
+kill -USR1 $(cat /var/run/nginx.pid)' > /etc/periodic/daily/nginx-log-rotate && \
+    chmod +x /etc/periodic/daily/nginx-log-rotate
 
 # Port configuration
 EXPOSE 80
